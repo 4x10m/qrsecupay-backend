@@ -85,7 +85,7 @@ router.get('/buy/:uuid/:guid', function (req, res, next) {
     client.connect();
     //client.query('SELECT $1::int AS number from test', ['1'], function(err, result) {
 
-    client.query("select * from product where serial = ' " + uuid + "'", function(err, result) {
+    client.query("select * from product where serial = '" + uuid + "'", function(err, result) {
         if (err) {
             return console.error('error running query', err);
         }
@@ -99,7 +99,7 @@ router.get('/buy/:uuid/:guid', function (req, res, next) {
                     sockets[value].socket.emit('buy', name);
                 }
             }
-            res.status(200).json(null);
+            res.status(200).json("objet acheté");
         }
 
         res.status(404).json(null);
