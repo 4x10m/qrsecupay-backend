@@ -92,7 +92,7 @@ router.get('/buy/:uuid/:guid', function (req, res, next) {
 
 
         if(result.rowCount > 0) {
-            console.log(result[0].name);
+            console.log(result.rows[0].name);
             var name = result[0].name;
             for (value in sockets) {
                 if (sockets[value].guid === guid) {
