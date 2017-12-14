@@ -5,13 +5,15 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var lessMiddleware = require('less-middleware');
-var cors = require('cors')
+var cors = require('cors');
 
 var index = require('./routes/index');
 var users = require('./routes/users');
 
 var app = express();
-app.use(cors())
+app.use(cors());
+var http = require('http').Server(app);
+var io = require('socket.io')(http);
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -28,6 +30,10 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', index);
 app.use('/users', users);
+
+io.on('connection', function(socket){
+    console.log('a user connected');
+});
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -48,3 +54,5 @@ app.use(function(err, req, res, next) {
 });
 
 module.exports = app;
+
+
