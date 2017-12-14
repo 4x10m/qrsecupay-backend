@@ -53,22 +53,29 @@ router.get('/product/:name/:price/:img', function(req, res, next) {
     const client = new pg.Client(connectionString);
     client.connect();
     //client.query('SELECT $1::int AS number from test', ['1'], function(err, result) {
-    client.query('SELECT *  from test', function(err, result) {
-        //call `done()` to release the client back to the pool
+
+    QRCode.toDataURL(data, function (err, url) {
+        console.log(url);
+
+    client.query("insert  into product (name, price, img, qrcode) values ('" + name + "', '" + price + "','" + img + "','" + url + "');", function(err, result) {
+
+
+
+
 
 
         if(err) {
             return console.error('error running query', err);
         }
-        console.log(result.rows[0].test);
+        console.log(result);
+
+        res.json({ qrcode: url});
         //output: 1
     });
 
-    // QRCode.toDataURL(data, function (err, url) {
-    //     console.log(url);
-    //
-    //     res.json({ qrcode: url});
-    // });
+    });
+
+
 });
 
 module.exports = router;
