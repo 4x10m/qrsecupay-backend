@@ -27,5 +27,14 @@ router.get('/test', function(req, res, next) {
 
 });
 
+router.get('/user/:login/:password', function(req, res, next) {
+
+    if (req.params.login === "plop" && req.params.password === "plop") {
+        res.status(200).json();
+    }
+
+    res.status(404).json();
+
+});
 
 module.exports = router;
