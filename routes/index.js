@@ -3,30 +3,49 @@ var router = express.Router();
 var QRCode = require('qrcode');
 const uuidv1 = require('uuid/v1');
 var sockets = require('./../sockets.js');
+var db = require('./../db.js');
 
-
-/* GET home page. */
 router.get('/', function (req, res, next) {
     res.json({message: 'plop'});
 });
 
 
-router.get('/test', function (req, res, next) {
-    var bool = false;
-    var myurl = "";
-
-
+router.get('/createqrcode', function (req, res, next) {
     QRCode.toDataURL('I am a pony!', function (err, url) {
         console.log(url);
 
-
-        myurl = url;
-
-        res.json({message: myurl});
-        bool = true;
+        res.json({qrcode: url});
     });
+});
 
+//create user
+router.post('/user', function (req, res, next) {
+    //var bear = new Bear();      // create a new instance of the Bear model
 
+    var login = req.body.login;
+    var password = req.body.password;
+
+    var result = db.createUser(login, password);
+
+    if (result) {
+        res.status(404).json();
+    } else {
+        res.status(404).json();
+    }
+});
+
+//login user
+router.get('/user1/:login/:password', function (req, res, next) {
+    var login = req.params.login;
+    var password = req.params.password;
+
+    var result = db.login(login, password);
+
+    if (result) {
+        res.status(200).json({guid: result});
+    } else {
+        res.status(404).json();
+    }
 });
 
 router.get('/user/:login/:password', function (req, res, next) {
@@ -74,36 +93,58 @@ router.get('/product/:name/:price/:img/:guid', function (req, res, next) {
     });
 });
 
-router.get('/buy/:uuid/:guid', function (req, res, next) {
-    var uuid = req.params.uuid;
-    var guid = req.params.guid;
-    //bdd access
-    const pg = require('pg');
-    const connectionString = process.env.DATABASE_URL || 'postgres://testsecuuser:fdsvsgsrtgrt@51.255.47.226/testsecudb';
 
-    const client = new pg.Client(connectionString);
-    client.connect();
-    //client.query('SELECT $1::int AS number from test', ['1'], function(err, result) {
+//create a client and return the created uuid for communicating whith socket
+router.get('/auth', function (req, res, next) {
+    var clientuuid = uuidv1();
 
-    client.query("select * from product where serial = '" + uuid + "'", function(err, result) {
-        if (err) {
-            return console.error('error running query', err);
-        }
+    sockets.addClient(clientuuid);
 
+    console.log(clientuuid);
 
-        if(result.rowCount > 0) {
-            console.log(result.rows[0].name);
-            var name = result.rows[0].name;
-            for (value in sockets) {
-                if (sockets[value].guid === guid) {
-                    sockets[value].socket.emit('buy', name);
-                }
-            }
-            res.status(200).json("objet acheté");
-        }
+    res.json({uuid: clientuuid});
+});
 
-        res.status(404).json(null);
+router.get('/product-serial', function (req, res, next) {
+    var serialuuid = uuidv1();
+
+    db.createProductSerial(serialuuid);
+
+    //var bypass = "http://51.255.47.226:3000/buy/" + uuid + "/" + guid;
+
+    res.json({serialuuid: serialuuid});
+});
+
+router.get('/product-serial-qrcode/:clientuuid', function (req, res, next) {
+    var clientuuid = req.params.clientuuid;
+    var serialuuid = uuidv1();
+
+    db.createProductSerial(clientuuid, serialuuid);
+
+    var bypass = "http://51.255.47.226:3000/buy/" + serialuuid + "/" + clientuuid;
+
+    QRCode.toDataURL(bypass, function (err, data) {
+        console.log(data);
+
+        res.json({qrcode: data, serialuuid: serialuuid});
     });
+});
+
+router.get('/buy/:serialuuid/:clientuuid', function (req, res, next) {
+    var serialuuid = req.params.serialuuid;
+    var clientuuid = req.params.clientuuid;
+
+    var result = db.searchProductWithSerial(serialuuid);
+
+    var socket = sockets.searchSocket(clientuuid);
+
+    socket.emit('buy', serialuuid);
+
+    if (result) {
+        res.status(200).json(result);
+    } else {
+        res.status(404).json();
+    }
 });
 
 module.exports = router;
