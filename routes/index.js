@@ -121,9 +121,9 @@ router.get('/product-serial-qrcode/:clientuuid', function (req, res, next) {
 
     db.createProductSerial(clientuuid, serialuuid);
 
-    var bypass = "http://51.255.47.226:3000/buy/" + serialuuid + "/" + clientuuid;
+    //var bypass = "http://51.255.47.226:3000/buy/" + serialuuid + "/" + clientuuid;
 
-    QRCode.toDataURL(bypass, function (err, data) {
+    QRCode.toDataURL(serialuuid, function (err, data) {
         console.log(data);
 
         res.json({qrcode: data, serialuuid: serialuuid});
