@@ -5,6 +5,7 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var cors = require('cors');
 var sockets = require('./sockets.js');
+var db = require('./db.js');
 
 var index = require('./routes/index');
 var users = require('./routes/users');
@@ -22,6 +23,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', index);
 app.use('/users', users);
+
+db.connect();
 
 http.listen(3001);
 

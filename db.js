@@ -6,18 +6,18 @@ var db = {
     connect: function() {
         client.connect()
     },
-    createUser: function(login, password) {
+    createUser: function(login, password, success, failure) {
         var query = "insert into usern values ('" + login + "', '" + password + "');";
 
         client.query(query, function (err, result) {
             if (err) {
-                return false;
+                failure();
                 // return console.error('error running query', err);
             }
 
             console.log(result);
 
-            return true;
+            success();
         });
     },
     login: function(login, password) {
@@ -38,13 +38,13 @@ var db = {
             return null;
         });
     },
-    createProductSerial: function(productuuid, serialuuid) {
+    createProductSerial: function(clientuuid, serialuuid) {
         //var query = "select * from product where uuid = '" + productuuid + ";";
-        var query = "insert into serial values ('" + productuuid + "', '" + serialuuid + "');";
+        var query = "insert into serial values ('" + clientuuid + "', '" + serialuuid + "');";
 
         client.query(query, function (err, result) {
             if (err) {
-                return false;
+                console.log(err);
                 // return console.error('error running query', err);
             }
 
@@ -86,6 +86,23 @@ var db = {
             }
 
             return false;
+        });
+    },
+    searchClientWithSerial: function(serialuuid, callback) {
+        //var query = "select * from product where uuid = '" + productuuid + ";";
+        var query = "select * from serial where serialuuid = '" + serialuuid + "';";
+
+        client.query(query, function (err, result) {
+            if (err) {
+                console.log(err);
+            }
+
+            console.log(result);
+
+            if (result.rowCount > 0) {
+                callback(result.rows[0].clientuuid);
+
+            }
         });
     }
 };

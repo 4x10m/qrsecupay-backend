@@ -1,4 +1,5 @@
 var sockets = {
+    // { clientuuid, socket, useruuid }
     sockets: [],
     addClient: function(clientuuid) {
         //check client doesn't exists
@@ -41,6 +42,15 @@ var sockets = {
     searchSocket: function(clientuuid) {
         for (socket in this.sockets) {
             if (this.sockets[socket].clientuuid == clientuuid) {
+                return this.sockets[socket].socket;
+            }
+        }
+
+        return null;
+    },
+    searchClient: function(serialuuid) {
+        for (socket in this.sockets) {
+            if (this.sockets[socket].serialuuid == serialuuid) {
                 return this.sockets[socket].socket;
             }
         }

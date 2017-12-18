@@ -5,6 +5,8 @@ const uuidv1 = require('uuid/v1');
 var sockets = require('./../sockets.js');
 var db = require('./../db.js');
 
+//===================== Testing =====================
+
 router.get('/', function (req, res, next) {
     res.json({message: 'plop'});
 });
@@ -18,37 +20,7 @@ router.get('/createqrcode', function (req, res, next) {
     });
 });
 
-//create user
-router.post('/user', function (req, res, next) {
-    //var bear = new Bear();      // create a new instance of the Bear model
-
-    var login = req.body.login;
-    var password = req.body.password;
-
-    var result = db.createUser(login, password);
-
-    if (result) {
-        res.status(404).json();
-    } else {
-        res.status(404).json();
-    }
-});
-
-//login user
-router.get('/user1/:login/:password', function (req, res, next) {
-    var login = req.params.login;
-    var password = req.params.password;
-
-    var result = db.login(login, password);
-
-    if (result) {
-        res.status(200).json({guid: result});
-    } else {
-        res.status(404).json();
-    }
-});
-
-router.get('/user/:login/:password', function (req, res, next) {
+router.get('/test/:login/:password', function (req, res, next) {
 
     if (req.params.login === "plop" && req.params.password === "plop") {
         res.status(200).json();
@@ -57,7 +29,6 @@ router.get('/user/:login/:password', function (req, res, next) {
     res.status(404).json();
 
 });
-
 
 router.get('/product/:name/:price/:img/:guid', function (req, res, next) {
     var name = req.params.name;
@@ -93,6 +64,40 @@ router.get('/product/:name/:price/:img/:guid', function (req, res, next) {
     });
 });
 
+//==========================================
+
+
+//===================== User =====================
+
+//create user
+router.post('/user', function (req, res, next) {
+    //var bear = new Bear();      // create a new instance of the Bear model
+
+    var login = req.body.login;
+    var password = req.body.password;
+
+    db.createUser(login, password, function() {
+        res.status(200).json();
+    }, function() {
+        res.status(404).json();
+    });
+});
+
+//login user
+router.get('/user/:login/:password', function (req, res, next) {
+    var login = req.params.login;
+    var password = req.params.password;
+
+    var result = db.login(login, password);
+
+    if (result) {
+        res.status(200).json({guid: result});
+    } else {
+        res.status(404).json();
+    }
+});
+
+//===================== Product =====================
 
 //create a client and return the created uuid for communicating whith socket
 router.get('/auth', function (req, res, next) {
@@ -130,21 +135,35 @@ router.get('/product-serial-qrcode/:clientuuid', function (req, res, next) {
     });
 });
 
-router.get('/buy/:serialuuid/:clientuuid', function (req, res, next) {
+router.get('/buy/:serialuuid', function (req, res, next) {
     var serialuuid = req.params.serialuuid;
-    var clientuuid = req.params.clientuuid;
 
-    var result = db.searchProductWithSerial(serialuuid);
+    var clientuuid = db.searchClientWithSerial(serialuuid, function(clientuuid) {
+        var socket = sockets.searchSocket(clientuuid);
 
-    var socket = sockets.searchSocket(clientuuid);
+        socket.emit('buy', serialuuid);
 
-    socket.emit('buy', serialuuid);
+        res.status(200).json();
+    });
 
-    if (result) {
-        res.status(200).json(result);
-    } else {
-        res.status(404).json();
-    }
+
 });
+
+// router.get('/buy/:serialuuid/:clientuuid', function (req, res, next) {
+//     var serialuuid = req.params.serialuuid;
+//     var clientuuid = req.params.clientuuid;
+//
+//     var result = db.searchProductWithSerial(serialuuid);
+//
+//     var socket = sockets.searchSocket(clientuuid);
+//
+//     socket.emit('buy', serialuuid);
+//
+//     if (result) {
+//         res.status(200).json(result);
+//     } else {
+//         res.status(404).json();
+//     }
+// });
 
 module.exports = router;
